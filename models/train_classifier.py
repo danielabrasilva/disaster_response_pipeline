@@ -18,6 +18,16 @@ from sklearn.model_selection import GridSearchCV
 import pickle
 
 def load_data(database_filepath):
+    """ Load data from a database.
+    
+    Args:
+    database_filepath: str. Filepath of the database.
+    
+    Returns:
+    X: numpy.array. Array containing message inputs.
+    y: numpy.array. Array containing the message classifications.
+    category_names: list. List with the classification labels.    
+    """
     engine = create_engine('sqlite:///'+database_filepath)
     df = pd.read_sql_table('project_data', con=engine)
     X = df['message'].values
@@ -58,30 +68,40 @@ def tokenize(text):
 
 
 def build_model():
+    """ Build model with NLP and ML Pipeline with a GridSearchCV sklearn model. 
+    
+    Returns:
+    model: A model to be fitted with the training data.
+    """
+    
+    
     # Instantiate pipeline
     pipeline = Pipeline([
     ('vect', CountVectorizer(tokenizer=tokenize)),
     ('tfidf', TfidfTransformer()),
     ('clf', MultiOutputClassifier(RandomForestClassifier(random_state=42)))
     ])
-
+        
+    # GridSearch algorithm    
     parameters= {
-        #'vect__ngram_range': ((1, 1), (1, 2)),
-        #'vect__max_df': (0.5, 0.75, 1.0),
-        #'vect__max_features': (None, 5000, 10000),
         'tfidf__use_idf': (True, False),
         'clf__estimator__n_estimators': [100, 200],
-        #'clf__estimator__min_samples_split': [2, 3, 4]
     }
-
-
-
-    cv = GridSearchCV(pipeline, param_grid=parameters)
-    return cv
+    
+    model = GridSearchCV(pipeline, param_grid=parameters)
+    return model
 
 
 
 def evaluate_model(model, X_test, Y_test, category_names):
+    """ Print a text report showing the main classification metrics.
+    
+    Args:
+    model: the trained model.
+    X_test: numpy array. Array containing  tested inputs.
+    Y_test: numpy array. Array containing tested outputs.
+    category_names: list. List with category labels.
+    """
     y_preds = model.predict(X_test)
 
     for i,cat in enumerate(category_names):
@@ -90,10 +110,8 @@ def evaluate_model(model, X_test, Y_test, category_names):
         print(classification+'\n')
 
 
-
-
-
 def save_model(model, model_filepath):
+    "Save the model in a pickle file."
     pickle.dump(model, open(model_filepath, 'wb'))
 
 

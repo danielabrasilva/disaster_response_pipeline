@@ -31,7 +31,7 @@ engine = create_engine('sqlite:///../data/DisasterResponse.db')
 df = pd.read_sql_table('project_data', engine)
 
 # load model
-model = joblib.load("../models/classifier.pkl")
+#model = joblib.load("../models/classifier.pkl")
 
 
 # index webpage displays cool visuals and receives user input text for model
@@ -43,6 +43,11 @@ def index():
     # TODO: Below is an example - modify to extract data for your own visuals
     genre_counts = df.groupby('genre').count()['message']
     genre_names = list(genre_counts.index)
+    category_colnames = ['request','offer','aid_related','medical_help','medical_products', 'search_and_rescue', 'security','military', 'child_alone','water', 'food', 'shelter', 'clothing','money','missing_people', 'refugees','death', 'other_aid', 'infrastructure_related', 'transport', 'buildings', 'electricity', 'tools', 'hospitals', 'shops','aid_centers', 'other_infrastructure', 'weather_related', 'floods', 'storm', 'fire', 'earthquake', 'cold','other_weather','direct_report']
+    
+    category_counts = df.groupby('related')[category_colnames].sum()
+    category_counts = category_counts.iloc[1,1:]
+    category_names = category_counts.index
 
     # create visuals
     # TODO: Below is an example - modify to create your own visuals
@@ -62,6 +67,27 @@ def index():
                 },
                 'xaxis': {
                     'title': "Genre"
+                }
+            }
+        }
+        ,
+        {
+            'data': [
+                Bar(
+                    y=category_names,
+                    x=category_counts,
+                    orientation='h'
+                )
+            ],
+
+            'layout': {
+                'height': '800',
+                'title': 'Distribution of Category Types',
+                'yaxis': {
+                    'title': ""
+                },
+                'xaxis': {
+                    'title': "Count"
                 }
             }
         }
